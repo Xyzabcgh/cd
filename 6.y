@@ -1,83 +1,104 @@
 %{
 #include<stdio.h>
 #include<stdlib.h>
+
 typedef char *string;
-struct {
-string op1,op2,res;
-char op;
+
+struct{
+
+	string op1,op2,res;
+	char op;
 }code[100];
-int idx=0;
-string add(string,string,char);
-void t();
-void q();
+
+int idx=-1;
+
+string addtotable(string,string,char);
+void threeaddresscode();
+void quadruples();
+int yylex();
+int yyerror();
+
 %}
+
 %union{
-char *exp;
+
+	char *exp;
 }
-%token <exp> IDEN NUM 
+
+%token <exp> IDEN NUM
 %type <exp> EXP
-%left '+' '-'
-%left '*' '/'
+%left '+''-'
+%left '*''/'
 
 %%
-STATS:STATS STAT
-|
-;
-STAT: EXP '\n'
-|
-;
-EXP:IDEN '=' NUM {$$=add($1,$3,'=');}
-|EXP '+' EXP {$$=add($1,$3,'+');}
-|EXP '-' EXP {$$=add($1,$3,'-');}
-|EXP '*' EXP {$$=add($1,$3,'*');}
-|EXP '/' EXP {$$=add($1,$3,'/');}
-|IDEN { $$ = $1; }
-|NUM { $$ = $1; }
-;
+
+STMTS: STMTS STMT
+	  |
+	  ;
+	  
+STMT:EXP '\n'
+	 ;
+	 
+EXP:EXP '+' EXP {$$=addtotable($1,$3,'+');}
+   |EXP '-' EXP {$$=addtotable($1,$3,'-');}
+   |EXP '' EXP {$$=addtotable($1,$3,'');}
+   |EXP '/' EXP {$$=addtotable($1,$3,'/');}
+   |IDEN '=' EXP {$$=addtotable($1,$3,'=');}
+   |'('EXP')' {$$=$2;}
+   |IDEN {$$=$1;}
+   |NUM {$$=$1;}
+   ;
+   
+   
 %%
-string add(string op1,string op2,char op)
-{
-if(op=='=')
-{
-code[idx].res=op1;
-return op1;
-}
-idx++;
 
-string res=malloc(5);
-sprintf(res, "@%c", idx + 'A');
-code[idx].op1=op1;
-code[idx].op2=op2;
-code[idx].op=op;
-code[idx].res=res;
-return res;
-}
-void t() {
-	for(int i = 0; i < idx; i++) {
-		printf("%s = %s %c %s\n", code[i].res, code[i].op1, code[i].op, code[i].op2);
-	}
-}
-
-
-void q() {
-	for(int i = 0; i < idx; i++) {
-		printf("%d:\t%s\t%s\t%s\t%c\n", i, code[i].res, code[i].op1, code[i].op2, code[i].op);
-	}
-}
 int yyerror()
 {
-printf("Invalid input");
-exit(0);
+	printf("error\n");
+	exit(0);
 }
 
 int main()
 {
-yyparse();
-printf("3 address");
-t();
-printf("4 address");
-q();
-return 0;
+	printf("enter the expression\n");
+	yyparse();
+	printf("Three address code\n");
+	threeaddresscode();
+	printf("quadruple code\n");  
+	quadruples();
 }
 
+string addtotable(string op1,string op2,char op)
+{
+		if(op=='=')
+		{
+			code[idx].res=op1;
+			return op1;
+		}
+		idx++;
+		string res=malloc(3);
+		sprintf(res,"@%c",idx+'A');
+		
+		code[idx].op1=op1;
+		code[idx].op2=op2;
+		code[idx].op=op;
+		code[idx].res=res;
+		
+		return res;
+}
 
+void threeaddresscode()
+{
+	for(int i=0;i<=idx;i++)
+	{
+		printf("%s = %s %c %s\n",code[i].res,code[i].op1,code[i].op,code[i].op2);
+	}
+}
+
+void quadruples()
+{
+	for(int i=0;i<=idx;i++)
+	{
+		printf("%d %s %s %s %c\n",i,code[i].res,code[i].op1,code[i].op2,code[i].op);
+	}
+}
